@@ -1,62 +1,98 @@
 <!doctype html>
 <html lang="hu">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Arany János nyomában – Szabadulószoba</title>
-  <style>
-    :root{
-      --bg:#0e1824; --card:#162233; --accent:#ffcc33; --ok:#2ecc71; --bad:#e74c3c; --muted:#9fb3c8;
-      --text:#f2f6fb;
-    }
-    {box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(180deg,#0b1420,#0e1824 40%,#0e1824);color:var(--text)}
-    header{padding:20px 16px;border-bottom:1px solid #213149;background:#0b1420;position:sticky;top:0;z-index:50}
-    header h1{margin:0;font-size:1.2rem;letter-spacing:.3px}
-    .toprow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:8px}
-    .badge{background:var(--card);border:1px solid #223249;border-radius:999px;padding:8px 12px;font-size:.9rem}
-    #timer{font-weight:700;color:var(--accent)}
-    .container{max-width:1000px;margin:24px auto;padding:0 16px 32px}
-    .progress{height:10px;background:#20304a;border-radius:999px;overflow:hidden;margin:12px 0 24px;border:1px solid #2b4160}
-    .bar{height:100%;background:linear-gradient(90deg,#ffcc33,#ff9f1c);width:0%}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Arany János nyomában – Szabadulószoba</title>
+<style>
+  :root{
+    --bg:#0e1824; --card:#162233; --accent:#ffcc33; --ok:#2ecc71; --bad:#e74c3c; --muted:#9fb3c8; --text:#f2f6fb;
+    --header-bg:#0b1420; --border:#2b4160;
+  }
+  {box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; display:flex; flex-direction:column; height:100vh; overflow:hidden; / <- nincs oldal-görgetés /
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:linear-gradient(180deg,#0b1420,#0e1824 40%,#0e1824);
+    color:var(--text);
+  }
+  header{
+    flex:0 0 auto; background:var(--header-bg); border-bottom:1px solid #213149;
+    padding:16px; position:relative; z-index:10;
+  }
+  header h1{margin:0;font-size:1.1rem;letter-spacing:.2px}
+  .toprow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:8px}
+  .badge{background:var(--card);border:1px solid #223249;border-radius:999px;padding:8px 12px;font-size:.9rem}
+  #timer{font-weight:700;color:var(--accent)}
+  .progress{height:10px;background:#20304a;border-radius:999px;overflow:hidden;margin:12px 0 0;border:1px solid #2b4160}
+  .bar{height:100%;background:linear-gradient(90deg,#ffcc33,#ff9f1c);width:0%}
 
-    .room{background:rgba(255,255,255,0.03);border:1px solid #2b4160;border-radius:16px;padding:20px;margin:16px 0;display:none}
-    .room.active{display:block;animation:fade .3s ease}
-    @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-    .room h2{margin:.2rem 0 0.6rem;font-size:1.3rem}
-    .room .intro{color:var(--muted);margin:0 0 12px}
-    fieldset{border:1px dashed #2b4160;border-radius:12px;padding:12px;margin:12px 0}
-    legend{padding:0 6px;color:#cfe1ff}
-    .q{margin:8px 0 10px}
-    .q label{display:block;margin:6px 0}
-    .pairrow{display:flex;gap:10px;align-items:center;margin:6px 0}
-    .pairrow span{min-width:160px}
-    select,input[type="text"]{background:#0d1522;border:1px solid #2b4160;color:var(--text);border-radius:8px;padding:8px;width:100%}
-    input[type="text"]::placeholder{color:#7c93ad}
-    .multi{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px}
-    .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
-    button{border:1px solid #2b4160;background:#1a2940;color:#f4f7fb;border-radius:10px;padding:10px 14px;cursor:pointer}
-    button.primary{background:linear-gradient(180deg,#ffcc33,#ffb703);color:#1d1d1d;border:none;font-weight:700}
-    button:disabled{opacity:.6;cursor:not-allowed}
-    .hint{font-size:.9rem;color:#9fb3c8;margin-top:8px}
-    .hint a{color:#9bd0ff}
-    .result{margin-top:8px;font-weight:600}
-    .ok{color:var(--ok)} .bad{color:var(--bad)}
+  / A fő terület is rögzített, csak az aktív szoba panelje görgethető /
+  main.container{flex:1 1 auto; overflow:hidden; max-width:1100px; margin:0 auto; width:100%}
+  .stage{height:100%; display:flex; align-items:stretch; justify-content:center; padding:12px}
+  .room{
+    background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px;
+    width:100%; max-width:1000px; height:100%; display:none; flex-direction:column;
+  }
+  .room.active{display:flex; animation:fade .3s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
-    .footer{margin:24px 0;color:#8fa8c4;font-size:.9rem}
-    .pill{display:inline-block;padding:2px 8px;border:1px solid #2b4160;border-radius:999px;margin-left:6px}
-    .hidden{display:none}
+  / A szobán belül a tartalom kap saját görgetést (ha szükséges) /
+  .room-scroll{flex:1 1 auto; overflow:auto; padding:16px 16px 20px}
 
-    / overlay on timeout /
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;place-items:center;z-index:200}
-    .overlay .panel{background:#111c2a;border:1px solid #2f4666;border-radius:16px;max-width:520px;padding:24px}
-    .overlay h3{margin-top:0}
-    .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-    .tag{background:#20324a;border:1px solid #2b4160;padding:4px 8px;border-radius:999px;font-size:.85rem}
-    .credits{color:#9fb3c8;font-size:.85rem;margin-top:8px}
-    .credits a{color:#9bd0ff}
-    .sr-only{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap}
-  </style>
+  .room h2{margin:.2rem 0 .6rem;font-size:1.25rem}
+  .room .intro{color:var(--muted);margin:0 0 10px}
+
+  / Hős „kép” – CSS-es, SVG nélkül /
+  figure.hero{margin:0; border-bottom:1px solid var(--border)}
+  .hero .art{
+    height:150px; position:relative; overflow:hidden;
+    background:radial-gradient(120% 80% at 0% 100%, rgba(255,204,51,.18), transparent 60%),
+               linear-gradient(180deg,#0e1a2c,#11223a);
+  }
+  .hero .emoji{
+    position:absolute; right:18px; bottom:-6px; font-size:120px; filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));
+  }
+  .hero .title{
+    position:absolute; left:16px; top:16px; font-weight:700; color:#e9f2ff; font-size:22px;
+    text-shadow:0 1px 2px rgba(0,0,0,.4)
+  }
+  / Szobánként finom szín eltérés /
+  .art-1{background:radial-gradient(120% 80% at 0% 100%, rgba(255,194,75,.22), transparent 60%), linear-gradient(180deg,#0e1a2c,#142845)}
+  .art-2{background:radial-gradient(120% 80% at 0% 100%, rgba(155,208,255,.22), transparent 60%), linear-gradient(180deg,#0e1a2c,#152b4a)}
+  .art-3{background:radial-gradient(120% 80% at 0% 100%, rgba(255,169,77,.22), transparent 60%), linear-gradient(180deg,#0e1a2c,#15294a)}
+  .art-4{background:radial-gradient(120% 80% at 0% 100%, rgba(155,208,255,.22), transparent 60%), linear-gradient(180deg,#0e1a2c,#152b4a)}
+  .art-5{background:radial-gradient(120% 80% at 0% 100%, rgba(255,209,102,.22), transparent 60%), linear-gradient(180deg,#0e1a2c,#15294a)}
+  .art-6{background:radial-gradient(120% 80% at 0% 100%, rgba(128,237,153,.22), transparent 60%), linear-gradient(180deg,#0e1a2c,#15294a)}
+  .art-7{background:radial-gradient(120% 80% at 0% 100%, rgba(255,159,179,.22), transparent 60%), linear-gradient(180deg,#0e1a2c,#15294a)}
+  .art-8{background:radial-gradient(120% 80% at 0% 100%, rgba(255,209,102,.22), transparent 60%), linear-gradient(180deg,#0e1a2c,#15294a)}
+
+  fieldset{border:1px dashed var(--border);border-radius:12px;padding:12px;margin:12px 0;background:rgba(0,0,0,.05)}
+  legend{padding:0 6px;color:#cfe1ff}
+  .pairrow{display:flex;gap:10px;align-items:center;margin:6px 0}
+  .pairrow span{min-width:160px}
+  .q label{display:block;margin:6px 0}
+  select,input[type="text"]{background:#0d1522;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px;width:100%}
+  input[type="text"]::placeholder{color:#7c93ad}
+  .multi{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px}
+  .result{margin:8px 0 0;font-weight:600}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+
+  / alsó sáv (navigációs tippek) /
+  .bottom{flex:0 0 auto; display:flex; justify-content:space-between; gap:8px; padding:10px 16px; border-top:1px solid var(--border); background:#0b1524}
+  .hint{font-size:.9rem;color:#9fb3c8}
+  .pill{display:inline-block;padding:2px 8px;border:1px solid var(--border);border-radius:999px;margin-left:6px}
+
+  / overlay az idő lejártakor /
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;place-items:center;z-index:200}
+  .overlay .panel{background:#111c2a;border:1px solid #2f4666;border-radius:16px;max-width:520px;padding:24px}
+  .overlay h3{margin-top:0}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .tag{background:#20324a;border:1px solid #2b4160;padding:4px 8px;border-radius:999px;font-size:.85rem}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#132038;border:1px solid #2f4666;color:#e9f2ff;padding:10px 14px;border-radius:10px;z-index:300;opacity:0;animation:toast 2s ease forwards}
+  @keyframes toast{0%{opacity:0;transform:translate(-50%,10px)}10%{opacity:1;transform:translate(-50%,0)}90%{opacity:1}100%{opacity:0}}
+</style>
 </head>
 <body>
 <header>
@@ -70,484 +106,492 @@
   <div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
 </header>
 
-<main class="container" id="game">
+<main class="container">
+  <div class="stage">
 
-  <!-- 1. Gyermekkor szobája -->
-  <section class="room active" data-room="1">
-    <h2>🗝️ Gyermekkor szobája</h2>
-    <p class="intro">A szoba tele van régi tárgyakkal és családi képekkel. Oldd meg a feladatokat!</p>
+    <!-- 1. Gyermekkor szobája -->
+    <section class="room active" data-room="1">
+      <figure class="hero">
+        <div class="art art-1">
+          <div class="title">Gyermekkor szobája</div>
+          <div class="emoji">🧸</div>
+        </div>
+      </figure>
+      <div class="room-scroll">
+        <h2>🗝️ Gyermekkor szobája</h2>
+        <p class="intro">A szoba tele van régi tárgyakkal és családi képekkel. Oldd meg a feladatokat!</p>
 
-    <fieldset class="q" data-qtype="mcq" data-correct="Nagyszalonta">
-      <legend>Hol született Arany János?</legend>
-      <label><input type="radio" name="r1" value="Nagyszalonta"> Nagyszalonta</label>
-      <label><input type="radio" name="r1" value="Debrecen"> Debrecen</label>
-      <label><input type="radio" name="r1" value="Karcag"> Karcag</label>
-      <label><input type="radio" name="r1" value="Pest"> Pest</label>
-    </fieldset>
+        <fieldset class="q" data-qtype="mcq" data-correct="Nagyszalonta">
+          <legend>Hol született Arany János?</legend>
+          <label><input type="radio" name="r1" value="Nagyszalonta"> Nagyszalonta</label>
+          <label><input type="radio" name="r1" value="Debrecen"> Debrecen</label>
+          <label><input type="radio" name="r1" value="Karcag"> Karcag</label>
+          <label><input type="radio" name="r1" value="Pest"> Pest</label>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="tf">
-      <legend>Igaz vagy hamis? (Gyermekkor)</legend>
-      <div class="pairrow" data-correct="I"><span>Arany János 1817-ben született.</span>
-        <label><input type="radio" name="tf1" value="I"> Igaz</label>
-        <label><input type="radio" name="tf1" value="H"> Hamis</label>
-      </div>
-      <div class="pairrow" data-correct="I"><span>Arany János apja kovács volt.</span>
-        <label><input type="radio" name="tf2" value="I"> Igaz</label>
-        <label><input type="radio" name="tf2" value="H"> Hamis</label>
-      </div>
-      <div class="pairrow" data-correct="I"><span>Arany János szegény családból származott.</span>
-        <label><input type="radio" name="tf3" value="I"> Igaz</label>
-        <label><input type="radio" name="tf3" value="H"> Hamis</label>
-      </div>
-      <div class="pairrow" data-correct="H"><span>Gyermekkorában Budapesten élt.</span>
-        <label><input type="radio" name="tf4" value="I"> Igaz</label>
-        <label><input type="radio" name="tf4" value="H"> Hamis</label>
-      </div>
-    </fieldset>
+        <fieldset class="q" data-qtype="tf">
+          <legend>Igaz vagy hamis? (Gyermekkor)</legend>
+          <div class="pairrow" data-correct="I"><span>Arany János 1817-ben született.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="I"><span>Arany János apja kovács volt.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="I"><span>Arany János szegény családból származott.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="H"><span>Gyermekkorában Budapesten élt.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="match">
-      <legend>Párosítás – Családtagok</legend>
-      <div class="pairrow" data-ans="Arany György"><span>Édesapja</span>
-        <select>
-          <option value="">– válassz –</option>
-          <option>Arany György</option><option>Megyeri Sára</option><option>Arany Sára</option><option>Ercsey Julianna</option>
-        </select>
-      </div>
-      <div class="pairrow" data-ans="Megyeri Sára"><span>Édesanyja</span>
-        <select>
-          <option value="">– válassz –</option>
-          <option>Arany György</option><option>Megyeri Sára</option><option>Arany Sára</option><option>Ercsey Julianna</option>
-        </select>
-      </div>
-      <div class="pairrow" data-ans="Arany Sára"><span>Testvére</span>
-        <select>
-          <option value="">– válassz –</option>
-          <option>Arany György</option><option>Megyeri Sára</option><option>Arany Sára</option><option>Ercsey Julianna</option>
-        </select>
-      </div>
-      <div class="pairrow" data-ans="Ercsey Julianna"><span>Felesége</span>
-        <select>
-          <option value="">– válassz –</option>
-          <option>Arany György</option><option>Megyeri Sára</option><option>Arany Sára</option><option>Ercsey Julianna</option>
-        </select>
-      </div>
-    </fieldset>
+        <fieldset class="q" data-qtype="match">
+          <legend>Párosítás – Családtagok</legend>
+          <div class="pairrow" data-ans="Arany György"><span>Édesapja</span>
+            <select>
+              <option value="">– válassz –</option>
+              <option>Arany György</option><option>Megyeri Sára</option><option>Arany Sára</option><option>Ercsey Julianna</option>
+            </select>
+          </div>
+          <div class="pairrow" data-ans="Megyeri Sára"><span>Édesanyja</span>
+            <select>
+              <option value="">– válassz –</option>
+              <option>Arany György</option><option>Megyeri Sára</option><option>Arany Sára</option><option>Ercsey Julianna</option>
+            </select>
+          </div>
+          <div class="pairrow" data-ans="Arany Sára"><span>Testvére</span>
+            <select>
+              <option value="">– válassz –</option>
+              <option>Arany György</option><option>Megyeri Sára</option><option>Arany Sára</option><option>Ercsey Julianna</option>
+            </select>
+          </div>
+          <div class="pairrow" data-ans="Ercsey Julianna"><span>Felesége</span>
+            <select>
+              <option value="">– válassz –</option>
+              <option>Arany György</option><option>Megyeri Sára</option><option>Arany Sára</option><option>Ercsey Julianna</option>
+            </select>
+          </div>
+        </fieldset>
 
-    <div class="hint">💡 Ha elakadsz, keresd a forrásokat a következő termekben.</div>
-    <div class="actions">
-      <span class="result" aria-live="polite"></span>
-      <button class="check">Ellenőrzés</button>
-      <button class="next" disabled>Tovább ➜</button>
-    </div>
-  </section>
-
-  <!-- 2. Első kötetek terme -->
-  <section class="room" data-room="2">
-    <h2>📚 Első kötetek terme</h2>
-    <p class="intro">Poros polcok, a sarokban régi kötetek.</p>
-
-    <fieldset class="q" data-qtype="mcq" data-correct="Toldi">
-      <legend>Melyik műve hozta meg az első nagy sikert?</legend>
-      <label><input type="radio" name="r2" value="Toldi"> Toldi</label>
-      <label><input type="radio" name="r2" value="A walesi bárdok"> A walesi bárdok</label>
-      <label><input type="radio" name="r2" value="Családi kör"> Családi kör</label>
-      <label><input type="radio" name="r2" value="Szondi két apródja"> Szondi két apródja</label>
-    </fieldset>
-
-    <fieldset class="q" data-qtype="fill" data-answer="1846">
-      <legend>Egészítsd ki!</legend>
-      <div>Arany János első jelentős költői sikere a <strong>Toldi</strong> című mű volt, amelyet <input type="text" placeholder="évszám">-ban írt.</div>
-    </fieldset>
-
-    <fieldset class="q" data-qtype="tf">
-      <legend>Igaz vagy hamis? (Első kötetek)</legend>
-      <div class="pairrow" data-correct="H"><span>Első kötete verseket tartalmazott latin nyelven.</span>
-        <label><input type="radio" name="tf5" value="I"> Igaz</label>
-        <label><input type="radio" name="tf5" value="H"> Hamis</label>
+        <div class="result" aria-live="polite"></div>
       </div>
-      <div class="pairrow" data-correct="I"><span>Petőfi Sándor ajánlotta be <em>Toldi</em>ját a Kisfaludy Társaságnak.</span>
-        <label><input type="radio" name="tf6" value="I"> Igaz</label>
-        <label><input type="radio" name="tf6" value="H"> Hamis</label>
+      <div class="bottom">
+        <div class="hint">Tipp: a piros keret hibát jelez, a zöld helyes megoldást.</div>
+        <div class="hint">Időkeret: <span class="pill">20 perc</span></div>
       </div>
-      <div class="pairrow" data-correct="I"><span>A <em>Toldi</em> elnyerte a Kisfaludy Társaság pályadíját.</span>
-        <label><input type="radio" name="tf7" value="I"> Igaz</label>
-        <label><input type="radio" name="tf7" value="H"> Hamis</label>
-      </div>
-      <div class="pairrow" data-correct="H"><span>A <em>Toldi szerelme</em> volt az első műve.</span>
-        <label><input type="radio" name="tf8" value="I"> Igaz</label>
-        <label><input type="radio" name="tf8" value="H"> Hamis</label>
-      </div>
-    </fieldset>
+    </section>
 
-    <div class="hint">📖 Forrás: <a href="https://mek.oszk.hu/01000/01008/html/" target="_blank" rel="noopener">MEK – Arany összes művei</a></div>
-    <div class="actions">
-      <span class="result"></span>
-      <button class="check">Ellenőrzés</button>
-      <button class="next" disabled>Tovább ➜</button>
-    </div>
-  </section>
+    <!-- 2. Első kötetek terme -->
+    <section class="room" data-room="2">
+      <figure class="hero"><div class="art art-2"><div class="title">Első kötetek terme</div><div class="emoji">📚</div></div></figure>
+      <div class="room-scroll">
+        <h2>📚 Első kötetek terme</h2>
+        <p class="intro">Poros polcok, a sarokban régi kötetek.</p>
 
-  <!-- 3. A Toldi titkos kamrája -->
-  <section class="room" data-room="3">
-    <h2>🎭 A Toldi titkos kamrája</h2>
-    <p class="intro">A falakon Toldi Miklós képei, a sarokban egy lakatolt láda.</p>
+        <fieldset class="q" data-qtype="mcq" data-correct="Toldi">
+          <legend>Melyik műve hozta meg az első nagy sikert?</legend>
+          <label><input type="radio" name="r2" value="Toldi"> Toldi</label>
+          <label><input type="radio" name="r2" value="A walesi bárdok"> A walesi bárdok</label>
+          <label><input type="radio" name="r2" value="Családi kör"> Családi kör</label>
+          <label><input type="radio" name="r2" value="Szondi két apródja"> Szondi két apródja</label>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="multicheck" data-correct="Toldi;Toldi estéje;Toldi szerelme">
-      <legend>Mely művek tartoznak a Toldi-trilógiához? (több válasz)</legend>
-      <div class="multi">
-        <label><input type="checkbox" value="Toldi"> Toldi</label>
-        <label><input type="checkbox" value="Toldi estéje"> Toldi estéje</label>
-        <label><input type="checkbox" value="Toldi szerelme"> Toldi szerelme</label>
-        <label><input type="checkbox" value="Buda halála"> Buda halála</label>
-      </div>
-    </fieldset>
+        <fieldset class="q" data-qtype="fill" data-answer="1846">
+          <legend>Egészítsd ki!</legend>
+          <div>Arany János első jelentős költői sikere a <strong>Toldi</strong> című mű volt, amelyet <input type="text" placeholder="évszám">-ban írt.</div>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="fill" data-answer="Toldi szerelme">
-      <legend>Egészítsd ki!</legend>
-      <div>A Toldi-trilógia <strong>második</strong> része a <input type="text" placeholder="mű címe">.</div>
-    </fieldset>
+        <fieldset class="q" data-qtype="tf">
+          <legend>Igaz vagy hamis? (Első kötetek)</legend>
+          <div class="pairrow" data-correct="H"><span>Első kötete verseket tartalmazott latin nyelven.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="I"><span>Petőfi Sándor ajánlotta be <em>Toldi</em>ját a Kisfaludy Társaságnak.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="I"><span>A <em>Toldi</em> elnyerte a Kisfaludy Társaság pályadíját.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="H"><span>A <em>Toldi szerelme</em> volt az első műve.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="match">
-      <legend>Párosítás – Részek és leírásuk</legend>
-      <div class="pairrow" data-ans="Miklós ifjúkori kalandjai"><span>Toldi</span>
-        <select>
-          <option value="">– leírás –</option>
-          <option>Miklós ifjúkori kalandjai</option><option>Miklós szerelmi története</option><option>Miklós időskora, elmúlás</option><option>Történelmi eposz, nem trilógia része</option>
-        </select>
+        <div class="result" aria-live="polite"></div>
       </div>
-      <div class="pairrow" data-ans="Miklós szerelmi története"><span>Toldi szerelme</span>
-        <select>
-          <option value="">– leírás –</option>
-          <option>Miklós ifjúkori kalandjai</option><option>Miklós szerelmi története</option><option>Miklós időskora, elmúlás</option><option>Történelmi eposz, nem trilógia része</option>
-        </select>
-      </div>
-      <div class="pairrow" data-ans="Miklós időskora, elmúlás"><span>Toldi estéje</span>
-        <select>
-          <option value="">– leírás –</option>
-          <option>Miklós ifjúkori kalandjai</option><option>Miklós szerelmi története</option><option>Miklós időskora, elmúlás</option><option>Történelmi eposz, nem trilógia része</option>
-        </select>
-      </div>
-      <div class="pairrow" data-ans="Történelmi eposz, nem trilógia része"><span>Buda halála</span>
-        <select>
-          <option value="">– leírás –</option>
-          <option>Miklós ifjúkori kalandjai</option><option>Miklós szerelmi története</option><option>Miklós időskora, elmúlás</option><option>Történelmi eposz, nem trilógia része</option>
-        </select>
-      </div>
-    </fieldset>
+      <div class="bottom"><div class="hint">Forrás-ötlet: MEK – Arany összes művei</div><div class="hint"></div></div>
+    </section>
 
-    <div class="actions">
-      <span class="result"></span>
-      <button class="check">Ellenőrzés</button>
-      <button class="next" disabled>Tovább ➜</button>
-    </div>
-  </section>
+    <!-- 3. A Toldi titkos kamrája -->
+    <section class="room" data-room="3">
+      <figure class="hero"><div class="art art-3"><div class="title">A Toldi titkos kamrája</div><div class="emoji">🛡️</div></div></figure>
+      <div class="room-scroll">
+        <h2>🎭 A Toldi titkos kamrája</h2>
+        <p class="intro">A falakon Toldi Miklós képei, a sarokban egy lakatolt láda.</p>
 
-  <!-- 4. A levelezések folyosója -->
-  <section class="room" data-room="4">
-    <h2>✉️ A levelezések folyosója</h2>
-    <p class="intro">Levelek lógnak a falon – némelyiken híres nevek.</p>
+        <fieldset class="q" data-qtype="multicheck" data-correct="Toldi;Toldi estéje;Toldi szerelme">
+          <legend>Mely művek tartoznak a Toldi‑trilógiához? (több válasz)</legend>
+          <div class="multi">
+            <label><input type="checkbox" value="Toldi"> Toldi</label>
+            <label><input type="checkbox" value="Toldi estéje"> Toldi estéje</label>
+            <label><input type="checkbox" value="Toldi szerelme"> Toldi szerelme</label>
+            <label><input type="checkbox" value="Buda halála"> Buda halála</label>
+          </div>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="mcq" data-correct="Petőfi Sándor">
-      <legend>Kivel levelezett rendszeresen Arany János?</legend>
-      <label><input type="radio" name="r4" value="Jókai Mór"> Jókai Mór</label>
-      <label><input type="radio" name="r4" value="Petőfi Sándor"> Petőfi Sándor</label>
-      <label><input type="radio" name="r4" value="Vörösmarty Mihály"> Vörösmarty Mihály</label>
-      <label><input type="radio" name="r4" value="Kazinczy Ferenc"> Kazinczy Ferenc</label>
-    </fieldset>
+        <fieldset class="q" data-qtype="fill" data-answer="Toldi szerelme">
+          <legend>Egészítsd ki!</legend>
+          <div>A Toldi‑trilógia <strong>második</strong> része a <input type="text" placeholder="mű címe">.</div>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="fill" data-answer="Arany János és Petőfi Sándor levelezése fontos irodalomtörténeti forrás">
-      <legend>Egészítsd ki (fogalmazd meg)!</legend>
-      <div><input type="text" placeholder="Írd be a lényeget (1 mondat)…"></div>
-      <div class="hint">💡 Kulcs: Arany és Petőfi levelezése fontos irodalomtörténeti forrás.</div>
-    </fieldset>
+        <fieldset class="q" data-qtype="match">
+          <legend>Párosítás – Részek és leírásuk</legend>
+          <div class="pairrow" data-ans="Miklós ifjúkori kalandjai"><span>Toldi</span>
+            <select>
+              <option value="">– leírás –</option>
+              <option>Miklós ifjúkori kalandjai</option><option>Miklós szerelmi története</option><option>Miklós időskora, elmúlás</option><option>Történelmi eposz, nem trilógia része</option>
+            </select>
+          </div>
+          <div class="pairrow" data-ans="Miklós szerelmi története"><span>Toldi szerelme</span>
+            <select>
+              <option value="">– leírás –</option>
+              <option>Miklós ifjúkori kalandjai</option><option>Miklós szerelmi története</option><option>Miklós időskora, elmúlás</option><option>Történelmi eposz, nem trilógia része</option>
+            </select>
+          </div>
+          <div class="pairrow" data-ans="Miklós időskora, elmúlás"><span>Toldi estéje</span>
+            <select>
+              <option value="">– leírás –</option>
+              <option>Miklós ifjúkori kalandjai</option><option>Miklós szerelmi története</option><option>Miklós időskora, elmúlás</option><option>Történelmi eposz, nem trilógia része</option>
+            </select>
+          </div>
+          <div class="pairrow" data-ans="Történelmi eposz, nem trilógia része"><span>Buda halála</span>
+            <select>
+              <option value="">– leírás –</option>
+              <option>Miklós ifjúkori kalandjai</option><option>Miklós szerelmi története</option><option>Miklós időskora, elmúlás</option><option>Történelmi eposz, nem trilógia része</option>
+            </select>
+          </div>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="tf">
-      <legend>Igaz vagy hamis? (Levelezések)</legend>
-      <div class="pairrow" data-correct="I"><span>Levelezései fontos forrásai a 19. századi magyar irodalomnak.</span>
-        <label><input type="radio" name="tf9" value="I"> Igaz</label>
-        <label><input type="radio" name="tf9" value="H"> Hamis</label>
+        <div class="result" aria-live="polite"></div>
       </div>
-      <div class="pairrow" data-correct="H"><span>Minden levelét latinul írta.</span>
-        <label><input type="radio" name="tf10" value="I"> Igaz</label>
-        <label><input type="radio" name="tf10" value="H"> Hamis</label>
-      </div>
-      <div class="pairrow" data-correct="I"><span>Levelezéseiben sokszor szó esik a magyar irodalom helyzetéről.</span>
-        <label><input type="radio" name="tf11" value="I"> Igaz</label>
-        <label><input type="radio" name="tf11" value="H"> Hamis</label>
-      </div>
-      <div class="pairrow" data-correct="H"><span>Csak családtagjaival levelezett.</span>
-        <label><input type="radio" name="tf12" value="I"> Igaz</label>
-        <label><input type="radio" name="tf12" value="H"> Hamis</label>
-      </div>
-    </fieldset>
+      <div class="bottom"><div class="hint">Tipp: a trilógia három részből áll…</div><div></div></div>
+    </section>
 
-    <div class="hint">📜 Forrás: <a href="https://pim.hu/hu/arany-janos-levelezese" target="_blank" rel="noopener">PIM – Arany János levelezése</a></div>
-    <div class="actions">
-      <span class="result"></span>
-      <button class="check">Ellenőrzés</button>
-      <button class="next" disabled>Tovább ➜</button>
-    </div>
-  </section>
+    <!-- 4. A levelezések folyosója -->
+    <section class="room" data-room="4">
+      <figure class="hero"><div class="art art-4"><div class="title">A levelezések folyosója</div><div class="emoji">✉️</div></div></figure>
+      <div class="room-scroll">
+        <h2>✉️ A levelezések folyosója</h2>
+        <p class="intro">Levelek lógnak a falon – némelyiken híres nevek.</p>
 
-  <!-- 5. A Kisfaludy Társaság szalonja -->
-  <section class="room" data-room="5">
-    <h2>🏅 A Kisfaludy Társaság szalonja</h2>
-    <p class="intro">Elegáns szalon, díjak, oklevelek – és némi történelem.</p>
+        <fieldset class="q" data-qtype="mcq" data-correct="Petőfi Sándor">
+          <legend>Kivel levelezett rendszeresen Arany János?</legend>
+          <label><input type="radio" name="r4" value="Jókai Mór"> Jókai Mór</label>
+          <label><input type="radio" name="r4" value="Petőfi Sándor"> Petőfi Sándor</label>
+          <label><input type="radio" name="r4" value="Vörösmarty Mihály"> Vörösmarty Mihály</label>
+          <label><input type="radio" name="r4" value="Kazinczy Ferenc"> Kazinczy Ferenc</label>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="tf">
-      <legend>Igaz vagy hamis? (Kapcsolat a Társasággal)</legend>
-      <div class="pairrow" data-correct="I"><span>Arany János a Kisfaludy Társaság igazgatója volt.</span>
-        <label><input type="radio" name="tf13" value="I"> Igaz</label>
-        <label><input type="radio" name="tf13" value="H"> Hamis</label>
-      </div>
-      <div class="pairrow" data-correct="H"><span>Soha nem kapott díjat a Társaságtól.</span>
-        <label><input type="radio" name="tf14" value="I"> Igaz</label>
-        <label><input type="radio" name="tf14" value="H"> Hamis</label>
-      </div>
-      <div class="pairrow" data-correct="H"><span>A Társaságban csak verseket írt.</span>
-        <label><input type="radio" name="tf15" value="I"> Igaz</label>
-        <label><input type="radio" name="tf15" value="H"> Hamis</label>
-      </div>
-      <div class="pairrow" data-correct="I"><span>Fontos szerepet töltött be a magyar irodalmi életben a Társaság révén.</span>
-        <label><input type="radio" name="tf16" value="I"> Igaz</label>
-        <label><input type="radio" name="tf16" value="H"> Hamis</label>
-      </div>
-    </fieldset>
+        <fieldset class="q" data-qtype="fill" data-answer="Arany János és Petőfi Sándor levelezése fontos irodalomtörténeti forrás">
+          <legend>Egészítsd ki (fogalmazd meg)!</legend>
+          <div><input type="text" placeholder="Írd be a lényeget (1 mondat)…"></div>
+          <p class="intro">Kulcs: Arany és Petőfi levelezése fontos irodalomtörténeti forrás.</p>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="match">
-      <legend>Párosítás – Irodalmi szerepek</legend>
-      <div class="pairrow" data-ans="Igazgató"><span>Kisfaludy Társaság</span>
-        <select><option value="">– szerep –</option><option>Igazgató</option><option>Főtitkár</option><option>Tag</option><option>Dramaturg</option></select>
-      </div>
-      <div class="pairrow" data-ans="Főtitkár"><span>Magyar Tudományos Akadémia</span>
-        <select><option value="">– szerep –</option><option>Igazgató</option><option>Főtitkár</option><option>Tag</option><option>Dramaturg</option></select>
-      </div>
-      <div class="pairrow" data-ans="Tag"><span>Petőfi Társaság</span>
-        <select><option value="">– szerep –</option><option>Igazgató</option><option>Főtitkár</option><option>Tag</option><option>Dramaturg</option></select>
-      </div>
-      <div class="pairrow" data-ans="Dramaturg"><span>Nemzeti Színház</span>
-        <select><option value="">– szerep –</option><option>Igazgató</option><option>Főtitkár</option><option>Tag</option><option>Dramaturg</option></select>
-      </div>
-    </fieldset>
+        <fieldset class="q" data-qtype="tf">
+          <legend>Igaz vagy hamis? (Levelezések)</legend>
+          <div class="pairrow" data-correct="I"><span>Levelezései fontos forrásai a 19. századi magyar irodalomnak.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="H"><span>Minden levelét latinul írta.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="I"><span>Levelezéseiben sokszor szó esik a magyar irodalom helyzetéről.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="H"><span>Csak családtagjaival levelezett.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="mcq" data-correct="Pályadíj">
-      <legend>Milyen díjat kapott a Kisfaludy Társaságtól?</legend>
-      <label><input type="radio" name="r5" value="Pályadíj"> Pályadíj</label>
-      <label><input type="radio" name="r5" value="Nobel-díj"> Nobel-díj</label>
-      <label><input type="radio" name="r5" value="Kossuth-díj"> Kossuth-díj</label>
-      <label><input type="radio" name="r5" value="Széchenyi-díj"> Széchenyi-díj</label>
-    </fieldset>
-
-    <div class="hint">📚 Forrás: <a href="https://hu.wikipedia.org/wiki/Kisfaludy_T%C3%A1rsas%C3%A1g" target="_blank" rel="noopener">Kisfaludy Társaság – Wikipédia</a></div>
-    <div class="actions">
-      <span class="result"></span>
-      <button class="check">Ellenőrzés</button>
-      <button class="next" disabled>Tovább ➜</button>
-    </div>
-  </section>
-
-  <!-- 6. Margitszigeti dolgozószoba -->
-  <section class="room" data-room="6">
-    <h2>🌳 Margitszigeti dolgozószoba</h2>
-    <p class="intro">Fényes ablak, kéziratok az asztalon.</p>
-
-    <fieldset class="q" data-qtype="mcq" data-correct="Őszikék">
-      <legend>Melyik művét írta a Margitszigeten?</legend>
-      <label><input type="radio" name="r6" value="A walesi bárdok"> A walesi bárdok</label>
-      <label><input type="radio" name="r6" value="Őszikék"> Őszikék</label>
-      <label><input type="radio" name="r6" value="Toldi estéje"> Toldi estéje</label>
-      <label><input type="radio" name="r6" value="Ágnes asszony"> Ágnes asszony</label>
-    </fieldset>
-
-    <fieldset class="q" data-qtype="fill" data-answer="Őszikék">
-      <legend>Egészítsd ki!</legend>
-      <div>Arany János az <input type="text" placeholder="ciklus neve"> ciklust a Margitszigeten írta.</div>
-    </fieldset>
-
-    <fieldset class="q" data-qtype="tf">
-      <legend>Igaz vagy hamis? (Margitsziget és Őszikék)</legend>
-      <div class="pairrow" data-correct="I"><span>Az Őszikék ciklusában az elmúlás és öregség témája jelenik meg.</span>
-        <label><input type="radio" name="tf17" value="I"> Igaz</label>
-        <label><input type="radio" name="tf17" value="H"> Hamis</label>
+        <div class="result" aria-live="polite"></div>
       </div>
-      <div class="pairrow" data-correct="H"><span>A Margitszigeten írta a <em>Toldi</em>t is.</span>
-        <label><input type="radio" name="tf18" value="I"> Igaz</label>
-        <label><input type="radio" name="tf18" value="H"> Hamis</label>
-      </div>
-      <div class="pairrow" data-correct="H"><span>Az Őszikék csak egyetlen versből áll.</span>
-        <label><input type="radio" name="tf19" value="I"> Igaz</label>
-        <label><input type="radio" name="tf19" value="H"> Hamis</label>
-      </div>
-      <div class="pairrow" data-correct="I"><span>A Margitsziget inspirálta Arany János késői költészetét.</span>
-        <label><input type="radio" name="tf20" value="I"> Igaz</label>
-        <label><input type="radio" name="tf20" value="H"> Hamis</label>
-      </div>
-    </fieldset>
+      <div class="bottom"><div class="hint">Forrás-ötlet: PIM – Arany levelezése</div><div></div></div>
+    </section>
 
-    <div class="hint">📖 Forrás: <a href="https://mek.oszk.hu/01000/01008/html/" target="_blank" rel="noopener">MEK – Arany összes művei</a></div>
-    <div class="actions">
-      <span class="result"></span>
-      <button class="check">Ellenőrzés</button>
-      <button class="next" disabled>Tovább ➜</button>
-    </div>
-  </section>
+    <!-- 5. A Kisfaludy Társaság szalonja -->
+    <section class="room" data-room="5">
+      <figure class="hero"><div class="art art-5"><div class="title">A Kisfaludy Társaság szalonja</div><div class="emoji">🏅</div></div></figure>
+      <div class="room-scroll">
+        <h2>🏅 A Kisfaludy Társaság szalonja</h2>
+        <p class="intro">Elegáns szalon, díjak, oklevelek – és némi történelem.</p>
 
-  <!-- 7. Az utolsó évek szobája -->
-  <section class="room" data-room="7">
-    <h2>🕯️ Az utolsó évek szobája</h2>
-    <p class="intro">Csendes szoba, a falon emléktáblák.</p>
+        <fieldset class="q" data-qtype="tf">
+          <legend>Igaz vagy hamis? (Kapcsolat a Társasággal)</legend>
+          <div class="pairrow" data-correct="I"><span>Arany János a Kisfaludy Társaság igazgatója volt.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="H"><span>Soha nem kapott díjat a Társaságtól.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="H"><span>A Társaságban csak verseket írt.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="I"><span>Fontos szerepet töltött be a magyar irodalmi életben a Társaság révén.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="mcq" data-correct="1882">
-      <legend>Melyik évben hunyt el Arany János?</legend>
-      <label><input type="radio" name="r7" value="1875"> 1875</label>
-      <label><input type="radio" name="r7" value="1890"> 1890</label>
-      <label><input type="radio" name="r7" value="1882"> 1882</label>
-      <label><input type="radio" name="r7" value="1867"> 1867</label>
-    </fieldset>
+        <fieldset class="q" data-qtype="match">
+          <legend>Párosítás – Irodalmi szerepek</legend>
+          <div class="pairrow" data-ans="Igazgató"><span>Kisfaludy Társaság</span>
+            <select><option value="">– szerep –</option><option>Igazgató</option><option>Főtitkár</option><option>Tag</option><option>Dramaturg</option></select>
+          </div>
+          <div class="pairrow" data-ans="Főtitkár"><span>Magyar Tudományos Akadémia</span>
+            <select><option value="">– szerep –</option><option>Igazgató</option><option>Főtitkár</option><option>Tag</option><option>Dramaturg</option></select>
+          </div>
+          <div class="pairrow" data-ans="Tag"><span>Petőfi Társaság</span>
+            <select><option value="">– szerep –</option><option>Igazgató</option><option>Főtitkár</option><option>Tag</option><option>Dramaturg</option></select>
+          </div>
+          <div class="pairrow" data-ans="Dramaturg"><span>Nemzeti Színház</span>
+            <select><option value="">– szerep –</option><option>Igazgató</option><option>Főtitkár</option><option>Tag</option><option>Dramaturg</option></select>
+          </div>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="fill" data-answer="Arany János 1882-ben halt meg Budapesten">
-      <legend>Egészítsd ki!</legend>
-      <div><input type="text" placeholder="Írd be a teljes mondatot…"></div>
-      <div class="hint">💡 Kulcs: „Arany János 1882-ben halt meg Budapesten.”</div>
-    </fieldset>
+        <fieldset class="q" data-qtype="mcq" data-correct="Pályadíj">
+          <legend>Milyen díjat kapott a Kisfaludy Társaságtól?</legend>
+          <label><input type="radio" name="r5" value="Pályadíj"> Pályadíj</label>
+          <label><input type="radio" name="r5" value="Nobel-díj"> Nobel-díj</label>
+          <label><input type="radio" name="r5" value="Kossuth-díj"> Kossuth-díj</label>
+          <label><input type="radio" name="r5" value="Széchenyi-díj"> Széchenyi-díj</label>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="match">
-      <legend>Párosítás – Események és évszámok</legend>
-      <div class="pairrow" data-ans="1877-1882"><span>Őszikék ciklus írása</span>
-        <select><option value="">– év –</option><option>1865-1879</option><option>1877-1882</option><option>1882</option></select>
+        <div class="result" aria-live="polite"></div>
       </div>
-      <div class="pairrow" data-ans="1865-1879"><span>A Magyar Tudományos Akadémia főtitkára</span>
-        <select><option value="">– év –</option><option>1865-1879</option><option>1877-1882</option><option>1882</option></select>
-      </div>
-      <div class="pairrow" data-ans="1882"><span>Halála</span>
-        <select><option value="">– év –</option><option>1865-1879</option><option>1877-1882</option><option>1882</option></select>
-      </div>
-      <div class="pairrow" data-ans="1877-1882"><span>Margitszigeti tartózkodás</span>
-        <select><option value="">– év –</option><option>1865-1879</option><option>1877-1882</option><option>1882</option></select>
-      </div>
-    </fieldset>
+      <div class="bottom"><div class="hint">Tipp: gondolj az intézmények szerepére!</div><div></div></div>
+    </section>
 
-    <div class="hint">ℹ️ Forrás: <a href="https://hu.wikipedia.org/wiki/Arany_J%C3%A1nos" target="_blank" rel="noopener">Arany János – Wikipédia</a></div>
-    <div class="actions">
-      <span class="result"></span>
-      <button class="check">Ellenőrzés</button>
-      <button class="next" disabled>Tovább ➜</button>
-    </div>
-  </section>
+    <!-- 6. Margitszigeti dolgozószoba -->
+    <section class="room" data-room="6">
+      <figure class="hero"><div class="art art-6"><div class="title">Margitszigeti dolgozószoba</div><div class="emoji">🌳</div></div></figure>
+      <div class="room-scroll">
+        <h2>🌳 Margitszigeti dolgozószoba</h2>
+        <p class="intro">Fényes ablak, kéziratok az asztalon.</p>
 
-  <!-- 8. Dicsőség terme -->
-  <section class="room" data-room="8">
-    <h2>🏆 Dicsőség terme</h2>
-    <p class="intro">Az utolsó ajtó: a művek dicsősége.</p>
+        <fieldset class="q" data-qtype="mcq" data-correct="Őszikék">
+          <legend>Melyik művét írta a Margitszigeten?</legend>
+          <label><input type="radio" name="r6" value="A walesi bárdok"> A walesi bárdok</label>
+          <label><input type="radio" name="r6" value="Őszikék"> Őszikék</label>
+          <label><input type="radio" name="r6" value="Toldi estéje"> Toldi estéje</label>
+          <label><input type="radio" name="r6" value="Ágnes asszony"> Ágnes asszony</label>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="match">
-      <legend>Párosítás – Mű és műfaj</legend>
-      <div class="pairrow" data-ans="Elbeszélő költemény"><span>Toldi</span>
-        <select><option value="">– műfaj –</option><option>Elbeszélő költemény</option><option>Ballada</option><option>Lírai vers</option></select>
-      </div>
-      <div class="pairrow" data-ans="Ballada"><span>A walesi bárdok</span>
-        <select><option value="">– műfaj –</option><option>Elbeszélő költemény</option><option>Ballada</option><option>Lírai vers</option></select>
-      </div>
-      <div class="pairrow" data-ans="Lírai vers"><span>Családi kör</span>
-        <select><option value="">– műfaj –</option><option>Elbeszélő költemény</option><option>Ballada</option><option>Lírai vers</option></select>
-      </div>
-      <div class="pairrow" data-ans="Ballada"><span>Szondi két apródja</span>
-        <select><option value="">– műfaj –</option><option>Elbeszélő költemény</option><option>Ballada</option><option>Lírai vers</option></select>
-      </div>
-    </fieldset>
+        <fieldset class="q" data-qtype="fill" data-answer="Őszikék">
+          <legend>Egészítsd ki!</legend>
+          <div>Arany János az <input type="text" placeholder="ciklus neve"> ciklust a Margitszigeten írta.</div>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="mcq" data-correct="János vitéz">
-      <legend>Melyik NEM Arany János alkotása?</legend>
-      <label><input type="radio" name="r8" value="Toldi estéje"> Toldi estéje</label>
-      <label><input type="radio" name="r8" value="Ágnes asszony"> Ágnes asszony</label>
-      <label><input type="radio" name="r8" value="János vitéz"> János vitéz</label>
-      <label><input type="radio" name="r8" value="A walesi bárdok"> A walesi bárdok</label>
-    </fieldset>
+        <fieldset class="q" data-qtype="tf">
+          <legend>Igaz vagy hamis? (Margitsziget és Őszikék)</legend>
+          <div class="pairrow" data-correct="I"><span>Az Őszikék ciklusában az elmúlás és öregség témája jelenik meg.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="H"><span>A Margitszigeten írta a <em>Toldi</em>t is.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="H"><span>Az Őszikék csak egyetlen versből áll.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="I"><span>A Margitsziget inspirálta Arany János késői költészetét.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+        </fieldset>
 
-    <fieldset class="q" data-qtype="tf">
-      <legend>Igaz vagy hamis? (Életmű)</legend>
-      <div class="pairrow" data-correct="I"><span>Arany János a magyar ballada megújítója volt.</span>
-        <label><input type="radio" name="tf21" value="I"> Igaz</label>
-        <label><input type="radio" name="tf21" value="H"> Hamis</label>
+        <div class="result" aria-live="polite"></div>
       </div>
-      <div class="pairrow" data-correct="H"><span>Soha nem fordított Shakespeare-művet.</span>
-        <label><input type="radio" name="tf22" value="I"> Igaz</label>
-        <label><input type="radio" name="tf22" value="H"> Hamis</label>
-      </div>
-      <div class="pairrow" data-correct="I"><span>Ő írta a <em>Családi kör</em> című verset.</span>
-        <label><input type="radio" name="tf23" value="I"> Igaz</label>
-        <label><input type="radio" name="tf23" value="H"> Hamis</label>
-      </div>
-      <div class="pairrow" data-correct="H"><span>Csak lírai verseket írt.</span>
-        <label><input type="radio" name="tf24" value="I"> Igaz</label>
-        <label><input type="radio" name="tf24" value="H"> Hamis</label>
-      </div>
-    </fieldset>
+      <div class="bottom"><div class="hint">Forrás-ötlet: MEK – Őszikék ciklus</div><div></div></div>
+    </section>
 
-    <div class="actions">
-      <span class="result"></span>
-      <button class="check">Ellenőrzés</button>
-      <button class="next" disabled>🎉 Befejezés</button>
-    </div>
-  </section>
+    <!-- 7. Az utolsó évek szobája -->
+    <section class="room" data-room="7">
+      <figure class="hero"><div class="art art-7"><div class="title">Az utolsó évek szobája</div><div class="emoji">🕯️</div></div></figure>
+      <div class="room-scroll">
+        <h2>🕯️ Az utolsó évek szobája</h2>
+        <p class="intro">Csendes szoba, a falon emléktáblák.</p>
 
-  <!-- Gratulálunk -->
-  <section class="room" data-room="9">
-    <h2>🎉 Gratulálunk!</h2>
-    <p class="intro">Sikeresen kijutottál Arany János szabadulószobájából!</p>
-    <p>Összpontszámod: <strong id="finalScore">–</strong></p>
-    <p>Köszönjük, hogy velünk játszottál – reméljük, sok érdekességet tanultál az életéről és műveiről.</p>
-    <div class="footer">Készült oktatási célra.<span class="pill">Időkeret: 20 perc</span></div>
-  </section>
+        <fieldset class="q" data-qtype="mcq" data-correct="1882">
+          <legend>Melyik évben hunyt el Arany János?</legend>
+          <label><input type="radio" name="r7" value="1875"> 1875</label>
+          <label><input type="radio" name="r7" value="1890"> 1890</label>
+          <label><input type="radio" name="r7" value="1882"> 1882</label>
+          <label><input type="radio" name="r7" value="1867"> 1867</label>
+        </fieldset>
 
+        <fieldset class="q" data-qtype="fill" data-answer="Arany János 1882-ben halt meg Budapesten">
+          <legend>Egészítsd ki!</legend>
+          <div><input type="text" placeholder="Írd be a teljes mondatot…"></div>
+          <p class="intro">Kulcs: „Arany János 1882-ben halt meg Budapesten.”</p>
+        </fieldset>
+
+        <fieldset class="q" data-qtype="match">
+          <legend>Párosítás – Események és évszámok</legend>
+          <div class="pairrow" data-ans="1877-1882"><span>Őszikék ciklus írása</span>
+            <select><option value="">– év –</option><option>1865-1879</option><option>1877-1882</option><option>1882</option></select>
+          </div>
+          <div class="pairrow" data-ans="1865-1879"><span>A Magyar Tudományos Akadémia főtitkára</span>
+            <select><option value="">– év –</option><option>1865-1879</option><option>1877-1882</option><option>1882</option></select>
+          </div>
+          <div class="pairrow" data-ans="1882"><span>Halála</span>
+            <select><option value="">– év –</option><option>1865-1879</option><option>1877-1882</option><option>1882</option></select>
+          </div>
+          <div class="pairrow" data-ans="1877-1882"><span>Margitszigeti tartózkodás</span>
+            <select><option value="">– év –</option><option>1865-1879</option><option>1877-1882</option><option>1882</option></select>
+          </div>
+        </fieldset>
+
+        <div class="result" aria-live="polite"></div>
+      </div>
+      <div class="bottom"><div class="hint">Tipp: nézd meg az évszámok közti összefüggést.</div><div></div></div>
+    </section>
+
+    <!-- 8. Dicsőség terme -->
+    <section class="room" data-room="8">
+      <figure class="hero"><div class="art art-8"><div class="title">Dicsőség terme</div><div class="emoji">🏆</div></div></figure>
+      <div class="room-scroll">
+        <h2>🏆 Dicsőség terme</h2>
+        <p class="intro">Az utolsó ajtó: a művek dicsősége.</p>
+
+        <fieldset class="q" data-qtype="match">
+          <legend>Párosítás – Mű és műfaj</legend>
+          <div class="pairrow" data-ans="Elbeszélő költemény"><span>Toldi</span>
+            <select><option value="">– műfaj –</option><option>Elbeszélő költemény</option><option>Ballada</option><option>Lírai vers</option></select>
+          </div>
+          <div class="pairrow" data-ans="Ballada"><span>A walesi bárdok</span>
+            <select><option value="">– műfaj –</option><option>Elbeszélő költemény</option><option>Ballada</option><option>Lírai vers</option></select>
+          </div>
+          <div class="pairrow" data-ans="Lírai vers"><span>Családi kör</span>
+            <select><option value="">– műfaj –</option><option>Elbeszélő költemény</option><option>Ballada</option><option>Lírai vers</option></select>
+          </div>
+          <div class="pairrow" data-ans="Ballada"><span>Szondi két apródja</span>
+            <select><option value="">– műfaj –</option><option>Elbeszélő költemény</option><option>Ballada</option><option>Lírai vers</option></select>
+          </div>
+        </fieldset>
+
+        <fieldset class="q" data-qtype="mcq" data-correct="János vitéz">
+          <legend>Melyik NEM Arany János alkotása?</legend>
+          <label><input type="radio" name="r8" value="Toldi estéje"> Toldi estéje</label>
+          <label><input type="radio" name="r8" value="Ágnes asszony"> Ágnes asszony</label>
+          <label><input type="radio" name="r8" value="János vitéz"> János vitéz</label>
+          <label><input type="radio" name="r8" value="A walesi bárdok"> A walesi bárdok</label>
+        </fieldset>
+
+        <!-- DÖNTŐ FELADAT -->
+        <fieldset class="q" data-qtype="tf" data-final="1">
+          <legend>Igaz vagy hamis? (Életmű) – <em>Döntő feladat</em></legend>
+          <div class="pairrow" data-correct="I"><span>Arany János a magyar ballada megújítója volt.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="H"><span>Soha nem fordított Shakespeare‑művet.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="I"><span>Ő írta a <em>Családi kör</em> című verset.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <div class="pairrow" data-correct="H"><span>Csak lírai verseket írt.</span>
+            <label><input type="radio" value="I"> Igaz</label>
+            <label><input type="radio" value="H"> Hamis</label>
+          </div>
+          <p class="intro">Ha minden állítás helyes, kinyílik az ajtó… ha nem, lezárul.</p>
+        </fieldset>
+
+        <div class="result" aria-live="polite"></div>
+      </div>
+      <div class="bottom"><div class="hint">Ez a döntő kapu. Sok sikert!</div><div></div></div>
+    </section>
+
+    <!-- 9. GRATS -->
+    <section class="room" data-room="9">
+      <figure class="hero"><div class="art art-8"><div class="title">Gratulálunk!</div><div class="emoji">🎉</div></div></figure>
+      <div class="room-scroll">
+        <h2>🎉 Gratulálunk!</h2>
+        <p class="intro">Sikeresen kijutottál Arany János szabadulószobájából!</p>
+        <p>Összpontszámod: <strong id="finalScore">–</strong></p>
+        <p>Köszönjük, hogy velünk játszottál – reméljük, sok érdekességet tanultál az életéről és műveiről.</p>
+      </div>
+      <div class="bottom">
+        <div class="hint">Újra játszanál?</div>
+        <button id="retry2">🔁 Újraindítás</button>
+      </div>
+    </section>
+
+    <!-- 10. SORRY -->
+    <section class="room" data-room="10">
+      <figure class="hero"><div class="art art-7"><div class="title">Sajnálom!</div><div class="emoji">🕰️</div></div></figure>
+      <div class="room-scroll">
+        <h2>🕰️ Sajnálom, most nem sikerült!</h2>
+        <p class="intro">Lejárt az idő vagy a döntő feladat nem lett hibátlan. Próbáld újra, menni fog!</p>
+        <p>Elért pontszámod: <strong id="finalScoreFail">–</strong></p>
+      </div>
+      <div class="bottom">
+        <div class="hint">Tipp: haladj a könnyebb kérdésektől a nehezebbek felé.</div>
+        <button id="retry3">🔁 Újraindítás</button>
+      </div>
+    </section>
+
+  </div>
 </main>
 
 <!-- Timeout overlay -->
 <div class="overlay" id="timeout">
   <div class="panel">
     <h3>⏰ Lejárt az idő!</h3>
-    <p>Ne csüggedj: próbáld újra, vagy nézz bele a forrásokba, majd térj vissza.</p>
+    <p>Ne csüggedj: próbáld újra, majd térj vissza.</p>
     <div class="tags">
-      <span class="tag">Stratégia: először a könnyebb feladatok</span>
-      <span class="tag">Tipp: figyeld a hibajelzéseket</span>
+      <span class="tag">Először a könnyebb feladatok</span>
+      <span class="tag">Figyeld a hibajelzéseket</span>
     </div>
-    <div class="credits">Források a játék szobáiban (MEK, PIM, Wikipédia). A tartalom a megadott játékleírás alapján készült.</div>
-    <div class="actions" style="justify-content:flex-start;margin-top:12px">
+    <div class="actions" style="margin-top:12px">
       <button id="retry" class="primary">🔁 Újraindítás</button>
     </div>
   </div>
 </div>
 
-<footer class="container footer">
-  <small>„Arany János nyomában” – tanulói szabadulószoba. A feladatok a megadott leírás szerint lettek kialakítva.</small>
-</footer>
-
 <script>
 (function(){
-  // ---------- ÁLLANDÓK ----------
-  const START_MINUTES = 20; // 20 perces időkeret
+  const START_MINUTES = 20;
   const TOTAL_ROOMS = 8;
 
-  // ---------- ÁLLAPOT ----------
-  let state = {
-    room: 1,
-    score: 0,
-    checkedInRoom: new Set(), // kérdés-azonosítók a duplázás ellen
-    timeLeft: START_MINUTES60,
-    timerId: null
-  };
+  let state = { room:1, score:0, timeLeft:START_MINUTES60, timerId:null };
 
-  // ---------- SEGÉDFÜGGVÉNYEK ----------
-  const $ = sel => document.querySelector(sel);
-  const $ = sel => Array.from(document.querySelectorAll(sel));
+  const {{0-raw-markdown-bd15dd27-ed0c-4904-a038-e81b00a97d61}}nbsp; = s => document.querySelector(s);
+  const $ = s => Array.from(document.querySelectorAll(s));
 
   function normalize(str){
-    return (str||"")
-      .toString()
-      .trim()
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // ékezetek elhagyása
-      .replace(/\s+/g,' ');
+    return (str||"").toString().trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
   }
 
   function setProgress(){
@@ -558,17 +602,22 @@
   }
 
   function showRoom(n){
-    $('.room').forEach(r => r.classList.remove('active'));
+    $('.room').forEach(r=>r.classList.remove('active'));
     const target = $(.room[data-room="${n}"]);
     if(target){ target.classList.add('active'); }
     state.room = n;
     setProgress();
   }
 
-  function endGame(){
-    showRoom(9);
-    $('#finalScore').textContent = state.score;
+  function toast(msg){
+    const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
+    document.body.appendChild(t); setTimeout(()=>t.remove(),2100);
+  }
+
+  function endGame(success){
     clearInterval(state.timerId);
+    if(success){ $('#finalScore').textContent = state.score; showRoom(9); }
+    else{ $('#finalScoreFail').textContent = state.score; showRoom(10); }
   }
 
   function startTimer(){
@@ -576,11 +625,10 @@
     state.timeLeft = START_MINUTES60;
     updateTimer();
     state.timerId = setInterval(()=>{
-      state.timeLeft--;
-      updateTimer();
+      state.timeLeft--; updateTimer();
       if(state.timeLeft<=0){
         clearInterval(state.timerId);
-        $('#timeout').style.display = 'grid';
+        $('#timeout').style.display='grid';
       }
     },1000);
   }
@@ -592,138 +640,116 @@
   }
 
   function resetGame(){
-    state = {room:1, score:0, checkedInRoom:new Set(), timeLeft:START_MINUTES*60, timerId:state.timerId};
-    // töröljük a felhasználói válaszokat
+    const keep = state.timerId;
+    state = {room:1, score:0, timeLeft:START_MINUTES*60, timerId:keep};
     $('input[type="radio"]').forEach(i=>i.checked=false);
     $('input[type="checkbox"]').forEach(i=>i.checked=false);
     $('input[type="text"]').forEach(i=>i.value='');
     $('select').forEach(s=>s.value='');
-    $('.result').forEach(r=>{r.textContent=''; r.className='result';});
-    $('.next').forEach(b=>b.disabled=true);
-    showRoom(1);
-    setProgress();
-    startTimer();
-  }
-
-  // ---------- ÉRTÉKELÉS ----------
-  // Visszatér: {correct:int, total:int}
-  function validateRoom(roomEl){
-    let correct = 0, total = 0;
-
-    // minden kérdés fieldset .q
-    const questions = Array.from(roomEl.querySelectorAll('.q'));
-    questions.forEach(fs=>{
-      let isCorrect = false;
-      const type = fs.dataset.qtype;
-      total++;
-
-      if(type === 'mcq'){
-        const right = fs.dataset.correct;
-        const chosen = fs.querySelector('input[type="radio"]:checked');
-        isCorrect = chosen && chosen.value === right;
-      }
-
-      else if(type === 'multicheck'){
-        const rightSet = new Set(fs.dataset.correct.split(';').map(s=>s.trim()));
-        const chosen = Array.from(fs.querySelectorAll('input[type="checkbox"]:checked')).map(c=>c.value);
-        const chosenSet = new Set(chosen);
-        // pontos egyezés: minden jó bent van és nincs felesleges
-        isCorrect = chosen.length === rightSet.size && [...rightSet].every(v=>chosenSet.has(v));
-      }
-
-      else if(type === 'tf'){
-        const rows = Array.from(fs.querySelectorAll('.pairrow'));
-        isCorrect = rows.every((row, idx)=>{
-          const name = tf-${roomEl.dataset.room}-${idx};
-          // biztosítsuk az egyedi name-ket, ha még nem azok:
-          const inputs = row.querySelectorAll('input[type="radio"]');
-          inputs.forEach(i=>{
-            if(!i.name || !i.name.startsWith('tf-')) i.name = name;
-          });
-          const checked = row.querySelector('input[type="radio"]:checked');
-          return checked && checked.value === row.dataset.correct;
-        });
-      }
-
-      else if(type === 'match'){
-        const rows = Array.from(fs.querySelectorAll('.pairrow'));
-        isCorrect = rows.every(row=>{
-          const sel = row.querySelector('select');
-          return sel && sel.value === row.dataset.ans;
-        });
-      }
-
-      else if(type === 'fill'){
-        const ans = normalize(fs.dataset.answer||'');
-        const inp = fs.querySelector('input[type="text"]');
-        const val = normalize(inp.value);
-        // engedékeny ellenőrzés: tartalmazza a kulcsszót/évet
-        isCorrect = ans && (val === ans || (ans.length>4 && val.includes(ans)));
-      }
-
-      // visszajelzés színezés
-      fs.style.borderColor = isCorrect ? '#2b6443' : '#6b2d2a';
-      fs.style.background = isCorrect ? 'rgba(46, 204, 113, .08)' : 'rgba(231, 76, 60, .06)';
-      if(isCorrect) correct++;
+    $('fieldset.q').forEach(fs=>{
+      fs.style.borderColor = '#2b4160';
+      fs.style.background = 'rgba(0,0,0,.05)';
+      delete fs.dataset.scored;
     });
-
-    return {correct,total};
+    $('.result').forEach(r=>{r.textContent=''; r.className='result';});
+    showRoom(1); setProgress(); startTimer();
   }
 
-  // ---------- ESEMÉNYKEZELÉS ----------
-  $('.room').forEach(room=>{
-    const btnCheck = room.querySelector('.check');
-    const btnNext  = room.querySelector('.next');
-    const resultEl = room.querySelector('.result');
+  function validateFieldset(fs, roomEl){
+    const type = fs.dataset.qtype;
+    let isCorrect = false;
 
-    if(btnCheck){
-      btnCheck.addEventListener('click', ()=>{
-        const {correct,total} = validateRoom(room);
-        if(correct===total){
-          resultEl.textContent = '✔️ Minden helyes! Megnyílt a tovább gomb.';
-          resultEl.className = 'result ok';
-          btnNext.disabled = false;
-          // pontszám: először helyesen megoldott szoba +10 pont
-          if(!room.dataset.scored){
-            state.score += 10;
-            room.dataset.scored = '1';
-            setProgress();
-          }
-        }else{
-          resultEl.textContent = ❌ ${correct}/${total} jó. Javíts a pirossal jelölt feladatokon!;
-          resultEl.className = 'result bad';
-        }
+    if(type === 'mcq'){
+      const right = fs.dataset.correct;
+      const chosen = fs.querySelector('input[type="radio"]:checked');
+      isCorrect = chosen && chosen.value === right;
+    }
+    else if(type === 'multicheck'){
+      const rightSet = new Set(fs.dataset.correct.split(';').map(s=>s.trim()));
+      const chosen = Array.from(fs.querySelectorAll('input[type="checkbox"]:checked')).map(c=>c.value);
+      const chosenSet = new Set(chosen);
+      isCorrect = chosen.length === rightSet.size && [...rightSet].every(v=>chosenSet.has(v));
+    }
+    else if(type === 'tf'){
+      const rows = Array.from(fs.querySelectorAll('.pairrow'));
+      isCorrect = rows.every((row)=>{
+        const inputs = row.querySelectorAll('input[type="radio"]');
+        inputs.forEach(i=>{ if(!i.name) i.name = tf-${roomEl.dataset.room}-${Math.random().toString(36).slice(2,6)}; });
+        const checked = row.querySelector('input[type="radio"]:checked');
+        return checked && checked.value === row.dataset.correct;
       });
     }
-
-    if(btnNext){
-      btnNext.addEventListener('click', ()=>{
-        const current = Number(room.dataset.room);
-        if(current < TOTAL_ROOMS){
-          showRoom(current+1);
-        }else{
-          endGame();
-        }
+    else if(type === 'match'){
+      const rows = Array.from(fs.querySelectorAll('.pairrow'));
+      isCorrect = rows.every(row=>{
+        const sel = row.querySelector('select'); return sel && sel.value === row.dataset.ans;
       });
     }
-  });
+    else if(type === 'fill'){
+      const ans = normalize(fs.dataset.answer||'');
+      const inp = fs.querySelector('input[type="text"]');
+      const val = normalize(inp.value);
+      isCorrect = ans && (val === ans || (ans.length>4 && val.includes(ans)));
+    }
 
-  $('#resetBtn').addEventListener('click', resetGame);
-  $('#retry').addEventListener('click', ()=>{
-    $('#timeout').style.display = 'none';
-    resetGame();
-  });
+    fs.style.borderColor = isCorrect ? '#2b6443' : '#6b2d2a';
+    fs.style.background = isCorrect ? 'rgba(46, 204, 113, .08)' : 'rgba(231, 76, 60, .06)';
+    return isCorrect;
+  }
 
-  // ---------- INDÍTÁS ----------
-  setProgress();
-  startTimer();
+  function evaluateRoom(roomEl){
+    const fieldsets = Array.from(roomEl.querySelectorAll('fieldset.q'));
+    const results = fieldsets.map(fs => validateFieldset(fs, roomEl));
+    const allCorrect = results.every(Boolean);
+    const res = roomEl.querySelector('.result');
 
-  // ARIA: jelöld a szobák címeit élő régióként, hogy a képernyőolvasó figyeljen a váltásra
-  $('.room h2').forEach(h=>h.setAttribute('aria-live','polite'));
+    // Döntő logika a 8. szobában
+    if(roomEl.dataset.room === '8'){
+      const finalFs = roomEl.querySelector('fieldset.q[data-final="1"]');
+      if(finalFs){
+        const rows = Array.from(finalFs.querySelectorAll('.pairrow'));
+        const allAnswered = rows.every(row => !!row.querySelector('input[type="radio"]:checked'));
+        if(allAnswered){
+          const ok = validateFieldset(finalFs, roomEl);
+          if(ok){ if(!finalFs.dataset.scored){ state.score += 10; finalFs.dataset.scored='1'; setProgress(); } setTimeout(()=>endGame(true),600); }
+          else{ setTimeout(()=>endGame(false),600); }
+        }
+        return; // a 8. szoba vége, nem lép tovább
+      }
+    }
 
+    // Egyéb szobák: automatikus továbblépés, ha minden helyes
+    if(allCorrect){
+      if(!roomEl.dataset.scored){ state.score += 10; roomEl.dataset.scored='1'; setProgress(); }
+      res.textContent = '✔️ Minden helyes! A zár kattan…'; res.className='result ok';
+      toast('🔓 Ajtó nyitva – továbblépés…');
+      const current = Number(roomEl.dataset.room);
+      if(current < TOTAL_ROOMS){ setTimeout(()=>showRoom(current+1), 800); }
+    }else{
+      const good = results.filter(Boolean).length, total = results.length;
+      res.textContent = ❌ ${good}/${total} feladat jó. Javíts a piros keretes részeken!; res.className='result bad';
+    }
+  }
+
+  function wire(){
+    // szobák figyelése
+    $('.room').forEach(room=>{
+      room.addEventListener('change', ()=>evaluateRoom(room));
+      room.addEventListener('keyup', e=>{
+        if(e.target.tagName==='INPUT' && e.target.type==='text'){ evaluateRoom(room); }
+      });
+    });
+    // idő lejárta
+    $('#retry').addEventListener('click', ()=>{ $('#timeout').style.display='none'; resetGame(); });
+    // gombok
+    $('#resetBtn').addEventListener('click', resetGame);
+    $('#retry2').addEventListener('click', resetGame);
+    $('#retry3').addEventListener('click', resetGame);
+  }
+
+  // indítás
+  setProgress(); startTimer(); wire();
 })();
 </script>
 </body>
 </html>
-``
-                                     
